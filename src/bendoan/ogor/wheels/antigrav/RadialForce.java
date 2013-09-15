@@ -4,29 +4,28 @@ import bendoan.ogor.utils.MathUtils;
 import robocode.AdvancedRobot;
 
 public class RadialForce {
-	private double x;
-	private double y;
 
-	// double x, double y, int polarity, double decay, double strength
-	public RadialForce(double x, double y) {
-		this.x = x;
-		this.y = y;
-	}
+    private double x;
+    private double y;
 
-	public double getEffectiveForce(AdvancedRobot robot) {
-		double distance = MathUtils.getDistance(x, y, robot.getX(),
-				robot.getY());
+    // double x, double y, int polarity, double decay, double strength
+    public RadialForce(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
 
-		return 70000 / distance;
+    public double getEffectiveForce(AdvancedRobot robot) {
+        double distance = MathUtils.getDistance(x, y, robot.getX(),
+                robot.getY());
 
-		// 70000 / distance
-	}
+        return 70000 / distance;
+    }
 
-	public double getX() {
-		return x;
-	}
+    public double getX() {
+        return x;
+    }
 
-	public double getY() {
-		return y;
-	}
+    public double getY() {
+        return y;
+    }
 }

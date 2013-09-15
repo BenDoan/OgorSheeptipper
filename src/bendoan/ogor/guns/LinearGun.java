@@ -16,76 +16,85 @@ import robocode.Rules;
 import robocode.ScannedRobotEvent;
 import robocode.util.Utils;
 
-/**
- * Implements a gun that fires at an enemy's last known location
- */
 public class LinearGun extends Gun {
-	private boolean debug = false;
 
-	public LinearGun(AdvancedRobot robot) {
-		super(robot);
-		robot.setAdjustGunForRobotTurn(true);
-	}
+    private boolean debug = false;
+    public int range = 400;
+    private double bulletPower = 3;
+    public double distanceToTarget = 0;
 
-	@Override
-	public void onEvent(Event event) {
-		// If this event happens to be a ScannedRobotEvent...
-		if (event instanceof ScannedRobotEvent) {
-			onScannedRobot((ScannedRobotEvent) event);
-		}
-	}
+    public LinearGun(AdvancedRobot robot) {
+        super(robot);
+        robot.setAdjustGunForRobotTurn(true);
+    }
 
-	private void onScannedRobot(ScannedRobotEvent event) {
-		Point2D.Double location = MathUtils.getLocation(robot,
-				event.getBearingRadians(), event.getDistance());
-		NumberFormat formatter = new DecimalFormat("#0.00");
+    @Override
+    public void onEvent(Event event) {
+        // If this event happens to be a ScannedRobotEvent...
+        if (event instanceof ScannedRobotEvent) {
+            onScannedRobot((ScannedRobotEvent) event);
+        }
+    }
 
-		fireAt(event);
+    private void onScannedRobot(ScannedRobotEvent event) {
+        Point2D.Double location = MathUtils.getLocation(robot,
+                event.getBearingRadians(), event.getDistance());
+        NumberFormat formatter = new DecimalFormat("#0.00");
 
-		if (debug) {
-			paintLoc(robot, location.x, location.y, 20);
-		}
+        fireAt(event);
 
-		if (debug) {
-			System.out.println("\n\nThe Target's Coordinates are: ("
-					+ formatter.format(location.x) + ", "
-					+ formatter.format(location.y) + ")");
-		}
-	}
+        if (debug) {
+            paintLoc(robot, location.x, location.y, 20);
+        }
 
-	private void fireAt(ScannedRobotEvent event) {
-		if (event.getName().equals(Observer.TARGET)) {
+        if (debug) {
+            System.out.println("\n\nThe Target's Coordinates are: ("
+                    + formatter.format(location.x) + ", "
+                    + formatter.format(location.y) + ")");
+        }
+    }
 
-			if (debug) {
-				System.out.println("Shooting at: " + event.getName());
-			}
+    private void fireAt(ScannedRobotEvent event) {
+        if (event.getName().equals(Observer.TARGET)) {
+            if (debug) {
+                System.out.println("Shooting at: " + event.getName());
+            }
 
-			double absoluteBearing = robot.getHeadingRadians()
-					+ event.getBearingRadians();
+            distanceToTarget = event.getDistance();
 
-			robot.setTurnGunRightRadians(Utils
-					.normalRelativeAngle(absoluteBearing
-							- robot.getGunHeadingRadians()
-							+ (event.getVelocity()
-									* Math.sin(event.getHeadingRadians()
-											- absoluteBearing) / 9.3)));
-			if (NearestNeighborSelector.getDisabledStatus()) {
-				robot.setFire(Rules.MIN_BULLET_POWER);
-			} else if (event.getDistance() < 400) { // 300
-				robot.setFire(3);
-			}
-		}
-	}
+            if (NearestNeighborSelector.disabledBotExists()) {
+                this.bulletPower = Rules.MIN_BULLET_POWER;
+            } else if (event.getDistance() < this.range) {
+                this.bulletPower = Rules.MAX_BULLET_POWER;
+            } else {
+                this.bulletPower = Rules.MIN_BULLET_POWER;
+            }
 
-	public static void paintLoc(AdvancedRobot robot, double x1, double y1,
-			double r1) {
-		int x = (int) x1;
-		int y = (int) y1;
-		int r = (int) r1;
+            double absoluteBearing = robot.getHeadingRadians()
+                    + event.getBearingRadians();
 
-		Graphics2D g = robot.getGraphics();
-		g.setColor(Color.green);
-		g.setStroke(new BasicStroke(6));
-		g.drawOval(x - r, y - r, r * 2, r * 2);
-	}
+            double BulletFudgeFactor = this.bulletPower * 3;
+
+            robot.setTurnGunRightRadians(Utils
+                    .normalRelativeAngle(absoluteBearing
+                    - robot.getGunHeadingRadians()
+                    + (event.getVelocity()
+                    * Math.sin(event.getHeadingRadians()
+                    - absoluteBearing) / BulletFudgeFactor)));
+
+            robot.setFire(this.bulletPower);
+        }
+    }
+
+    public static void paintLoc(AdvancedRobot robot, double x1, double y1,
+            double r1) {
+        int x = (int) x1;
+        int y = (int) y1;
+        int r = (int) r1;
+
+        Graphics2D g = robot.getGraphics();
+        g.setColor(Color.green);
+        g.setStroke(new BasicStroke(6));
+        g.drawOval(x - r, y - r, r * 2, r * 2);
+    }
 }
