@@ -12,7 +12,7 @@ import bendoan.ogor.radars.SpinRadar;
 import bendoan.ogor.targetselectors.NearestNeighborSelector;
 import bendoan.ogor.targetselectors.TargetSelector;
 import bendoan.ogor.utils.Util;
-import bendoan.ogor.wheels.StopAndGoWheel;
+import bendoan.ogor.wheels.CircularWheel;
 import bendoan.ogor.wheels.Wheel;
 import bendoan.ogor.wheels.antigrav.AntigravityWheel;
 
@@ -70,9 +70,7 @@ public class OgorSheepTipper extends AdvancedRobot {
         if (getOthers() == 1) {
             radar = new LockRadar(this);
             gun = new LinearGun(this);
-            if (((LinearGun) gun).distanceToTarget > ((LinearGun) gun).range) {//if Observer.TARGET is > range, use different wheel
-                wheel = new StopAndGoWheel(this);
-            }
+            wheel = new CircularWheel(this);
         } else {
             radar = new SpinRadar(this);
             gun = new LinearGun(this);

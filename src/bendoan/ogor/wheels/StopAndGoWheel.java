@@ -46,7 +46,6 @@ public class StopAndGoWheel extends Wheel {
 			} else {
 				robot.setTurnRight(30);
 			}
-			System.out.println("moving ahead 40*" + direction);
 		}
 		enemyEnergy = event.getEnergy();
 	}

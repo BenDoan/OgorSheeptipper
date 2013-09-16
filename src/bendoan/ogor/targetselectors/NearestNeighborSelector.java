@@ -1,6 +1,7 @@
 package bendoan.ogor.targetselectors;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import bendoan.ogor.intel.Observer;
 import bendoan.ogor.intel.RobotIntel;
@@ -26,43 +27,38 @@ public class NearestNeighborSelector extends TargetSelector {
 
     public void onScannedRobot(ScannedRobotEvent event) {
         Observer.TARGET = getClosestRobotName();
-
+        System.out.println("Target: " + Observer.TARGET);
     }
 
     private String getClosestRobotName() {
         double closestDistance = Double.MAX_VALUE;
-        int closestIndex = -1;
+        String closestRobot = "";
         disabledRobotExists = false;
-        ArrayList<RobotIntel> intel = Observer.getAllIntel();
+        HashMap<String, ArrayList<RobotIntel>> intel = Observer.getLog();
 
-        for (int i = 0; i < intel.size(); i++) {
-
+        for (String key : intel.keySet()) {
             // change target to any disabled opponents immediately
-            if (intel.get(i).getEnergy() == 0) {
-                closestIndex = i;
+            if (intel.get(key).get(intel.get(key).size()-1).getEnergy() == 0){
+                closestRobot = key;
                 disabledRobotExists = true;
-                return intel.get(closestIndex).getName();
+                return key;
             }
 
-            if (intel.get(i).getDistance() < closestDistance) {
-                closestDistance = intel.get(i).getDistance();
-                closestIndex = i;
+            if (intel.get(key).get(intel.get(key).size()-1).getDistance() < closestDistance){
+                closestDistance = intel.get(key).get(intel.get(key).size()-1).getDistance();
+                closestRobot = key;
             }
         }
 
-        if (closestIndex == -1) {
-            if (debug) {
+        if (closestRobot.equals("")) {
+            if (debug)
                 System.out.println("The closest index is null");
-            }
             return null;
         } else {
-            if (debug) {
-                System.out.println("Target is: "
-                        + intel.get(closestIndex).getName());
-            }
-            return intel.get(closestIndex).getName();
+            if (debug)
+                System.out.println("Target is: " + closestRobot);
+            return closestRobot;
         }
-
     }
 
     public static boolean disabledBotExists() {

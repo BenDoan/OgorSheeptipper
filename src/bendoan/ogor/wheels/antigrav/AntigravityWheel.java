@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import bendoan.ogor.intel.Observer;
 import bendoan.ogor.intel.RobotIntel;
@@ -17,11 +18,9 @@ import robocode.util.Utils;
 
 public class AntigravityWheel extends Wheel {
 
-    private boolean debug = false;
+    private boolean debug = true;
     int bulletHits = 0;
-    int constMoving = 1;
-    double constMovingX = 99999;
-    double constMovingY = 99999;
+    int distToWall = 200;
 
     public AntigravityWheel(AdvancedRobot robot) {
         super(robot);
@@ -37,43 +36,27 @@ public class AntigravityWheel extends Wheel {
 
     private void onHitByBullet(HitByBulletEvent event) {
         bulletHits++;
-        if (bulletHits == 3) {
+        if (bulletHits == 1) {
+            //forces.add(new RadialForce(robot.getX(), robot.getY()));
+            bulletHits = 0;
         }
     }
 
     @Override
     public void act() {
-        // get all robot forces
         ArrayList<RadialForce> forces = getRobotForces();
 
-        // get total x- and y- forces
         Point2D.Double vector = getTotalForceVector(forces);
-        // Calculate turn angle according to x-- and y forces
-        double turnAngle = getTurnAngle(vector);
-        // turn the robot
-        if (debug) {
-            System.out.println("The turn angle is: "
-                    + Math.toDegrees(turnAngle));
-        }
 
-        if (debug) {
-            System.out.println(getTurnAngle(vector));
-        }
-        if (Math.abs(getTurnAngle(vector)) > (Math.PI / 2)) {
-            if (debug) {
-                System.out.println("BACKWARDS");
-            }
+        double turnAngle = getTurnAngle(vector);
+
+        if (Math.abs(getTurnAngle(vector)) > (Math.PI / 2)) {// go backwards
             robot.setAhead(-1000);
             robot.setTurnRightRadians(-Utils.normalRelativeAngle(turnAngle));
-        } else {
-            if (debug) {
-                System.out.println("FORWARDS");
-            }
-            robot.setTurnRightRadians(Utils.normalRelativeAngle(turnAngle));
+        } else {//go forwards
             robot.setAhead(1000);
+            robot.setTurnRightRadians(Utils.normalRelativeAngle(turnAngle));
         }
-
-        constMoving++;
     }
 
     private double getTurnAngle(Double vector) {
@@ -81,23 +64,12 @@ public class AntigravityWheel extends Wheel {
                 vector.y) - robot.getHeadingRadians();
     }
 
-    // get heading of vector from enemy to our robot
-    // get effective force of Radialforce
-    // calculate x- and y- components using heading and effective force
-    // add components to total points.2d
+    // combines the RadialForces to find the optimum location to go to
     private Point2D.Double getTotalForceVector(ArrayList<RadialForce> forces) {
         Point2D.Double totalVector = new Point2D.Double();
 
-        if (debug && forces.size() > 2) {
-            System.out.println("Antigravity:x,y = (" + forces.get(2).getX()
-                    + ", " + forces.get(2).getY() + ")");
-
-            System.out.println("Items in array forces" + forces);
-        }
-
         for (RadialForce force : forces) {
-            Util.paintCircle(robot, force.getX(), force.getY(), 5,
-                    Color.magenta);
+            Util.paintCircle(robot, force.getX(), force.getY(), 5, Color.magenta);
 
             double heading = MathUtils.getHeading(force.getX(), force.getY(),
                     robot.getX(), robot.getY());
@@ -114,82 +86,62 @@ public class AntigravityWheel extends Wheel {
         Util.paintLine(robot, totalVector.getX(), totalVector.getY(),
                 Color.blue);
 
-        if (debug) {
-            System.out.println("\n\n\n\n\n\n\n\nAntigravity:Location = ("
-                    + totalVector.getX() + ", " + totalVector.getY() + ")");
-
-            Util.paintCircle(robot, totalVector.getX(), totalVector.getY(), 20,
-                    Color.blue);
-        }
-
         return totalVector;
     }
 
     private ArrayList<RadialForce> getRobotForces() {
-        ArrayList<RobotIntel> intel = Observer.getAllIntel();
+        HashMap<String, ArrayList<RobotIntel>> intel = Observer.getLog();
         ArrayList<RadialForce> forces = new ArrayList<RadialForce>();
+
+        // creates a radialforce object for each robot and adds them to forces
+        for (String key : intel.keySet()) {
+            RobotIntel r = intel.get(key).get(intel.get(key).size()-1);
+
+            Point2D.Double location = MathUtils.getLocation(robot, r.getBearingRadians(), r.getDistance());
+            RadialForce rf = new RadialForce(location.x, location.y);
+            forces.add(rf);
+        }
 
         Point2D.Double wallR = new Double();
         Point2D.Double wallL = new Double();
         Point2D.Double wallU = new Double();
         Point2D.Double wallD = new Double();
-        // Point2D.Double wallM = new Double();
-
-
-        for (RobotIntel r : intel) {
-            Point2D.Double location = MathUtils.getLocation(robot,
-                    r.getBearingRadians(), r.getDistance());
-            RadialForce rf = new RadialForce(location.x, location.y);
-
-            forces.add(rf);
-
-        }
+        Point2D.Double wallM = new Double();
 
         // lower wall grav point
         wallD.x = robot.getX();
         wallD.y = 0;
-        if (robot.getY() < 220) {
+        if (robot.getY() < distToWall) {
             forces.add(new RadialForce(wallD.x, wallD.y));
         }
 
         // right wall grav point
         wallR.y = robot.getY();
         wallR.x = robot.getBattleFieldWidth();
-        if ((robot.getBattleFieldWidth() - robot.getX()) < 220) {
+        if ((robot.getBattleFieldWidth() - robot.getX()) < distToWall) {
             forces.add(new RadialForce(wallR.x, wallR.y));
         }
 
         // upper wall grav point
         wallU.y = robot.getBattleFieldHeight();
         wallU.x = robot.getX();
-        if ((robot.getBattleFieldHeight() - robot.getY()) < 220) {
+        if ((robot.getBattleFieldHeight() - robot.getY()) < distToWall) {
             forces.add(new RadialForce(wallU.x, wallU.y));
         }
 
         // left wall grav point
         wallL.y = robot.getY();
         wallL.x = 0;
-        if (robot.getX() < 220) {
+        if (robot.getX() < distToWall) {
             forces.add(new RadialForce(wallL.x, wallL.y));
         }
 
-        // prevents the robot from standing still
-        if (robot.getOthers() > 2) {
-            if (constMoving % 999999999 == 0) { // 35
-                constMovingX = robot.getX();
-                constMovingY = robot.getY();
-            }
-        } else {
-            if (constMoving % 100 == 0) { // 35
-                constMovingX = robot.getX();
-                constMovingY = robot.getY();
-            }
-        }
-
-        if (constMovingX != 99999) {
-            forces.add(new RadialForce(constMovingX, constMovingY));
-        }
+        // middle grav point
+        wallM.y = robot.getBattleFieldHeight() / 2;
+        wallM.x = robot.getBattleFieldWidth() / 2;
+        forces.add(new RadialForce(wallM.x, wallM.y));
 
         return forces;
     }
+
 }

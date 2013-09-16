@@ -10,6 +10,7 @@ import java.text.NumberFormat;
 import bendoan.ogor.intel.Observer;
 import bendoan.ogor.targetselectors.NearestNeighborSelector;
 import bendoan.ogor.utils.MathUtils;
+import bendoan.ogor.utils.Util;
 import robocode.AdvancedRobot;
 import robocode.Event;
 import robocode.Rules;
@@ -37,64 +38,41 @@ public class LinearGun extends Gun {
     }
 
     private void onScannedRobot(ScannedRobotEvent event) {
-        Point2D.Double location = MathUtils.getLocation(robot,
-                event.getBearingRadians(), event.getDistance());
-        NumberFormat formatter = new DecimalFormat("#0.00");
-
         fireAt(event);
-
-        if (debug) {
-            paintLoc(robot, location.x, location.y, 20);
-        }
-
-        if (debug) {
-            System.out.println("\n\nThe Target's Coordinates are: ("
-                    + formatter.format(location.x) + ", "
-                    + formatter.format(location.y) + ")");
-        }
     }
 
     private void fireAt(ScannedRobotEvent event) {
         if (event.getName().equals(Observer.TARGET)) {
-            if (debug) {
-                System.out.println("Shooting at: " + event.getName());
-            }
+
+            // paint target with a red circle
+            Point2D.Double location = MathUtils.getLocation(robot, event.getBearingRadians(), event.getDistance());
+            Util.paintCircle(robot, location.getX(), location.getY(), 30, Color.red);
 
             distanceToTarget = event.getDistance();
 
-            if (NearestNeighborSelector.disabledBotExists()) {
-                this.bulletPower = Rules.MIN_BULLET_POWER;
-            } else if (event.getDistance() < this.range) {
-                this.bulletPower = Rules.MAX_BULLET_POWER;
-            } else {
-                this.bulletPower = Rules.MIN_BULLET_POWER;
-            }
 
             double absoluteBearing = robot.getHeadingRadians()
                     + event.getBearingRadians();
 
             double BulletFudgeFactor = this.bulletPower * 3;
 
-            robot.setTurnGunRightRadians(Utils
-                    .normalRelativeAngle(absoluteBearing
-                    - robot.getGunHeadingRadians()
-                    + (event.getVelocity()
-                    * Math.sin(event.getHeadingRadians()
-                    - absoluteBearing) / BulletFudgeFactor)));
+            robot.setTurnGunRightRadians(
+                Utils.normalRelativeAngle(
+                    absoluteBearing - robot.getGunHeadingRadians() + (event.getVelocity() * Math.sin(event.getHeadingRadians() - absoluteBearing) / BulletFudgeFactor)
+                )
+            );
+
+            if (NearestNeighborSelector.disabledBotExists()) {
+                this.bulletPower = Rules.MIN_BULLET_POWER; // set bullet power to min, and snipe disabled robot
+            } else if (event.getDistance() < this.range) {
+                this.bulletPower = Rules.MAX_BULLET_POWER; // set bullet power to max when target is close
+            } else {
+                //this.bulletPower = Rules.MIN_BULLET_POWER; // set bullet power to min when target is far
+                return;
+            }
 
             robot.setFire(this.bulletPower);
         }
     }
 
-    public static void paintLoc(AdvancedRobot robot, double x1, double y1,
-            double r1) {
-        int x = (int) x1;
-        int y = (int) y1;
-        int r = (int) r1;
-
-        Graphics2D g = robot.getGraphics();
-        g.setColor(Color.green);
-        g.setStroke(new BasicStroke(6));
-        g.drawOval(x - r, y - r, r * 2, r * 2);
-    }
 }

@@ -1,57 +1,36 @@
 package bendoan.ogor.intel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import robocode.Event;
 import robocode.RobotDeathEvent;
 import robocode.ScannedRobotEvent;
 
 public class Observer {
-
     private static boolean debug = false;
+
     private static ArrayList<RobotIntel> intel = new ArrayList<>();
     public static String TARGET = null; // current target
-    private static ArrayList<RobotIntel> log = new ArrayList<>();
+    private static HashMap<String, ArrayList<RobotIntel>> log = new HashMap<>();
 
     public static void remember(ScannedRobotEvent event) {
-        int index = getIndexOfRobot(event.getName());
-
-        if (index != -1) {
-            intel.set(index, new RobotIntel(event));
-        } else {
-            intel.add(new RobotIntel(event));
+        if (!log.containsKey(event.getName())){
+            log.put(event.getName(), new ArrayList<RobotIntel>()); //add new robot to map
         }
-
+        log.get(event.getName()).add(new RobotIntel(event));
     }
 
-    public static RobotIntel forget(String name) {
-        int index = getIndexOfRobot(name);
-
-        if (index != -1) {
-            return intel.remove(index);
-
-        } else {
-            return null;
-        }
-
+    // removes a robot from the intel log
+    public static ArrayList<RobotIntel> forget(String name) {
+        if (debug)
+            System.out.println("Removing " + name + " from log");
+        return log.remove(name);
     }
 
-    public static ArrayList<RobotIntel> getAllIntel() {
-        return intel;
-    }
-
-    public static int getIndexOfRobot(String name) {
-        // Examine all elements of the ArrayList, looking for the robot
-        // with the given name.
-        // When found, return the index.
-        // In the case that all elements have been examined, without finding the
-        // given robot name, return -1.
-        for (int i = 0; i < intel.size(); i++) {
-            if (intel.get(i).getName().equals(name)) {
-                return i;
-            }
-        }
-        return -1;
+    // returns intel list
+    public static HashMap<String, ArrayList<RobotIntel>> getLog() {
+        return log;
     }
 
     public static void onScannedRobot(ScannedRobotEvent event) {
@@ -60,23 +39,20 @@ public class Observer {
 
     public static void onRobotDeath(RobotDeathEvent event) {
         forget(event.getName());
-        if (debug) {
-            System.out.println("===========Reseting Intel");
-        }
     }
 
     public static void onEvent(Event event) {
         if (event instanceof ScannedRobotEvent) {
-            onScannedRobot((ScannedRobotEvent) event);
+            onScannedRobot((ScannedRobotEvent) event); //send scan event to it's method
         } else if (event instanceof RobotDeathEvent) {
-            onRobotDeath((RobotDeathEvent) event);
+            onRobotDeath((RobotDeathEvent) event); //send death event to it's method
         }
     }
 
+    //clears intel log
     public static void reset() {
-        intel.clear();
-        if (debug) {
+        log.clear();
+        if (debug)
             System.out.println("Clearing all intel");
-        }
     }
 }
