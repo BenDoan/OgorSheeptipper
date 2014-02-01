@@ -143,5 +143,4 @@ public class AntigravityWheel extends Wheel {
 
         return forces;
     }
-
 }

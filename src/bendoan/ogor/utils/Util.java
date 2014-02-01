@@ -7,8 +7,19 @@ import java.awt.Graphics2D;
 import robocode.AdvancedRobot;
 
 public class Util {
-	public static void paintLine(AdvancedRobot robot, double x1, double y1,
-			Color c) {
+	public static void paintLine(AdvancedRobot robot, double x1, double y1, double x2, double y2, Color c) {
+		int x = (int) x1;
+		int y = (int) y1;
+		int myx = (int) x2;
+		int myy = (int) y2;
+
+		Graphics2D g = robot.getGraphics();
+		g.setColor(c);
+		g.setStroke(new BasicStroke(2));
+		g.drawLine(myx, myy, x, y);
+	}
+
+	public static void paintLine(AdvancedRobot robot, double x1, double y1, Color c) {
 		int x = (int) x1;
 		int y = (int) y1;
 		int myx = (int) robot.getX();
@@ -18,11 +29,9 @@ public class Util {
 		g.setColor(c);
 		g.setStroke(new BasicStroke(2));
 		g.drawLine(myx, myy, x, y);
-
 	}
 
-	public static void paintCircle(AdvancedRobot robot, double x1, double y1,
-			double r1, Color c) {
+	public static void paintCircle(AdvancedRobot robot, double x1, double y1, double r1, Color c) {
 		int x = (int) x1;
 		int y = (int) y1;
 		int r = (int) r1;

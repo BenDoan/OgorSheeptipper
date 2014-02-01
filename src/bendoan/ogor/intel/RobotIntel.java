@@ -10,14 +10,14 @@ import robocode.ScannedRobotEvent;
 public class RobotIntel {
 
     protected AdvancedRobot robot;
-    private String name; // Robot name
-    private double distance; // Last distance recorded
-    private double heading; // Last heading recorded
+    private String name;
+    private double distance;
+    private double heading;
     private double headingRadians;
-    private double bearing; // Last bearing recorded
+    private double bearing;
     private double bearingRadians;
-    private double energy; // Last recorded energy level
-    private double velocity; // Gets velocity
+    private double energy;
+    private double velocity;
     private Point2D.Double location;
 
     public RobotIntel(String name, double distance, double heading,

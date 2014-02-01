@@ -5,6 +5,7 @@ import java.util.Random;
 
 import bendoan.ogor.guns.Gun;
 import bendoan.ogor.guns.LinearGun;
+import bendoan.ogor.guns.GuessFactorGun;
 import bendoan.ogor.intel.Observer;
 import bendoan.ogor.radars.LockRadar;
 import bendoan.ogor.radars.Radar;
@@ -41,12 +42,12 @@ public class OgorSheepTipper extends AdvancedRobot {
         // Initialize components with actual implementations
         wheel = new AntigravityWheel(this);
         radar = new SpinRadar(this);
-        gun = new LinearGun(this);
+        gun = new GuessFactorGun(this);
         targetSelector = new NearestNeighborSelector(this);
 
         // Customizations
         setAllColors(new Color(209, 116, 90));
-        setBulletColor(Color.red);
+        setBulletColor(Color.yellow);
 
         evalParts();
     }
@@ -69,8 +70,8 @@ public class OgorSheepTipper extends AdvancedRobot {
     private void evalParts() {
         if (getOthers() == 1) {
             radar = new LockRadar(this);
-            gun = new LinearGun(this);
-            wheel = new CircularWheel(this);
+            gun = new GuessFactorGun(this);
+            wheel = new AntigravityWheel(this);
         } else {
             radar = new SpinRadar(this);
             gun = new LinearGun(this);
