@@ -3,19 +3,13 @@ package bendoan.ogor.robots;
 import java.awt.Color;
 import java.util.Random;
 
-import bendoan.ogor.guns.Gun;
-import bendoan.ogor.guns.LinearGun;
-import bendoan.ogor.guns.GuessFactorGun;
-import bendoan.ogor.intel.Observer;
-import bendoan.ogor.radars.LockRadar;
-import bendoan.ogor.radars.Radar;
-import bendoan.ogor.radars.SpinRadar;
-import bendoan.ogor.targetselectors.NearestNeighborSelector;
-import bendoan.ogor.targetselectors.TargetSelector;
-import bendoan.ogor.utils.Util;
-import bendoan.ogor.wheels.CircularWheel;
-import bendoan.ogor.wheels.Wheel;
-import bendoan.ogor.wheels.antigrav.AntigravityWheel;
+import bendoan.ogor.guns.*;
+import bendoan.ogor.intel.*;
+import bendoan.ogor.radars.*;
+import bendoan.ogor.targetselectors.*;
+import bendoan.ogor.utils.*;
+import bendoan.ogor.wheels.*;
+import bendoan.ogor.wheels.antigrav.*;
 
 import robocode.AdvancedRobot;
 import robocode.BattleEndedEvent;
@@ -42,12 +36,13 @@ public class OgorSheepTipper extends AdvancedRobot {
         // Initialize components with actual implementations
         wheel = new AntigravityWheel(this);
         radar = new SpinRadar(this);
-        gun = new GuessFactorGun(this);
+        gun = new LinearGun(this);
         targetSelector = new NearestNeighborSelector(this);
 
         // Customizations
         setAllColors(new Color(209, 116, 90));
-        setBulletColor(Color.yellow);
+        //setBulletColor(new Color(70, 77, 106));
+        setBulletColor(Color.RED);
 
         evalParts();
     }
@@ -70,8 +65,8 @@ public class OgorSheepTipper extends AdvancedRobot {
     private void evalParts() {
         if (getOthers() == 1) {
             radar = new LockRadar(this);
-            gun = new GuessFactorGun(this);
-            wheel = new AntigravityWheel(this);
+            gun = new LinearGun(this);
+            wheel = new RamWheel(this);
         } else {
             radar = new SpinRadar(this);
             gun = new LinearGun(this);

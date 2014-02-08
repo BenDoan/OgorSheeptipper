@@ -17,14 +17,14 @@ import robocode.Rules;
 import robocode.ScannedRobotEvent;
 import robocode.util.Utils;
 
-public class LinearGun extends Gun {
+public class CircularGun extends Gun {
 
     private boolean debug = false;
     public int range = 400;
     private double bulletPower = 3;
     public double distanceToTarget = 0;
 
-    public LinearGun(AdvancedRobot robot) {
+    public CircularGun(AdvancedRobot robot) {
         super(robot);
         robot.setAdjustGunForRobotTurn(true);
     }
@@ -44,17 +44,6 @@ public class LinearGun extends Gun {
     private void fireAt(ScannedRobotEvent event) {
         if (event.getName().equals(Observer.TARGET)) {
 
-            if (NearestNeighborSelector.disabledBotExists()) {
-                this.bulletPower = Rules.MIN_BULLET_POWER; // set bullet power to min, and snipe disabled robot
-            } else if (event.getDistance() < 200) {
-                this.bulletPower = Rules.MAX_BULLET_POWER; // set bullet power to max when target is close
-            } else if (event.getDistance() < this.range) {
-                this.bulletPower = 2;
-            } else {
-                //this.bulletPower = Rules.MIN_BULLET_POWER; // set bullet power to min when target is far
-                return;
-            }
-
             // paint target with a red circle
             Point2D.Double location = MathUtils.getLocation(robot, event.getBearingRadians(), event.getDistance());
             Util.paintCircle(robot, location.getX(), location.getY(), 30, Color.red);
@@ -73,10 +62,18 @@ public class LinearGun extends Gun {
                 )
             );
 
+            if (NearestNeighborSelector.disabledBotExists()) {
+                this.bulletPower = Rules.MIN_BULLET_POWER; // set bullet power to min, and snipe disabled robot
+            } else if (event.getDistance() < this.range) {
+                this.bulletPower = Rules.MAX_BULLET_POWER; // set bullet power to max when target is close
+            } else {
+                //this.bulletPower = Rules.MIN_BULLET_POWER; // set bullet power to min when target is far
+                return;
+            }
 
-            System.out.println("Firing with power: " + this.bulletPower);
             robot.setFire(this.bulletPower);
         }
     }
 
 }
+

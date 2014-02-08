@@ -18,7 +18,8 @@ public class RadialForce {
         double distance = MathUtils.getDistance(x, y, robot.getX(),
                 robot.getY());
 
-        return 70000 / distance;
+        //return Math.pow(distance, -.5);
+        return 70000/distance;
     }
 
     public double getX() {

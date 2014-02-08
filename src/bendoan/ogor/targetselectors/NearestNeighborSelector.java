@@ -27,7 +27,6 @@ public class NearestNeighborSelector extends TargetSelector {
 
     public void onScannedRobot(ScannedRobotEvent event) {
         Observer.TARGET = getClosestRobotName();
-        System.out.println("Target: " + Observer.TARGET);
     }
 
     private String getClosestRobotName() {
